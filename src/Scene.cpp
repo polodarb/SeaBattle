@@ -5,6 +5,8 @@
 #include <cstdio>
 #include <iostream>
 
+SeaBattle::Scene* sceneForTimer;
+
 namespace SeaBattle {
     void Scene::renderText(int x, int y, const char *text) {
         glRasterPos2i(x, y);
@@ -26,11 +28,34 @@ namespace SeaBattle {
     }
 
     void Scene::init() {
-        // glEnable(GL_DEPTH_TEST);
-        // glEnable(GL_LIGHTING);
-        // glEnable(GL_LIGHT0);
-        // glEnable(GL_COLOR_MATERIAL);
-        // glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        glEnable(GL_COLOR_MATERIAL);
+        glEnable(GL_NORMALIZE);
+        glShadeModel(GL_SMOOTH);
+
+        GLfloat matAmbient[] = {0.5f, 0.5f, 0.5f, 1.0f};
+        GLfloat matDiffuse[] = {0.7f, 0.7f, 0.7f, 1.0f};
+        GLfloat matSpecular[] = {0.0f, 0.0f, 0.0f, 1.0f};
+        GLfloat matShininess = 0.0f;
+
+        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, matAmbient);
+        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matDiffuse);
+        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, matSpecular);
+        glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, matShininess);
+
+        GLfloat lightAmbient[] = {0.6f, 0.6f, 0.6f, 1.0f};
+        GLfloat lightDiffuse[] = {0.6f, 0.6f, 0.6f, 1.0f};
+        GLfloat lightSpecular[] = {0.0f, 0.0f, 0.0f, 1.0f};
+        GLfloat lightPosition[] = {0.0f, 10.0f, 10.0f, 0.0f};
+
+        glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
+        glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
+        glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+
+        sceneForTimer = this;
 
         playerBoard->generateShips();
         computerBoard->generateShips();
@@ -49,23 +74,29 @@ namespace SeaBattle {
 
     void Scene::drawLabels() {
         glColor3f(0.0f, 0.0f, 0.0f);
+        int windowWidth = glutGet(GLUT_WINDOW_WIDTH);
         char buffer[256];
         sprintf(buffer, "Your board");
-        renderText((int) playerBoard->getOffsetX(), (int) (playerBoard->getOffsetY() - 30), buffer);
+        renderText(windowWidth / 2 - 200, (int) (playerBoard->getOffsetY()), buffer);
         sprintf(buffer, "Bot's board");
-        renderText((int) computerBoard->getOffsetX(), (int) (computerBoard->getOffsetY() - 30), buffer);
+        renderText(windowWidth / 2 + 100, (int) (computerBoard->getOffsetY()), buffer);
     }
 
     void Scene::drawGameStatus() {
         int windowWidth = glutGet(GLUT_WINDOW_WIDTH);
         glColor3f(0.0f, 0.0f, 0.0f);
         char buffer[256];
-        sprintf(buffer, "%s", playerTurn ? "Your step" : "Bot's step");
-        renderText(windowWidth / 2 - 50, 30, buffer);
-        if (gameOver) {
+
+        if (!gameOver) {
+            sprintf(buffer, "%s", playerTurn ? "Your step" : "Bot's step");
+            renderText(windowWidth / 2 - 50, 30, buffer);
+        } else {
             glColor3f(1.0f, 0.0f, 0.0f);
-            sprintf(buffer, "Game over!");
-            renderText(windowWidth / 2 - 50, 50, buffer);
+            if (playerWon)
+                sprintf(buffer, "You won!");
+            else
+                sprintf(buffer, "Bot won!");
+            renderText(windowWidth / 2 - 50, 30, buffer);
         }
     }
 
@@ -75,22 +106,25 @@ namespace SeaBattle {
     }
 
     void Scene::handleMouseClick(float x, float y) {
-        std::cout << "Mouse click at world XZ: " << x << ", " << y << std::endl;
-
-        if (gameOver || !playerTurn) return;
+        if (gameOver || !playerTurn || waitingForBot) return;
 
         if (computerBoard->makeShot(x, y)) {
-            std::cout << "Hit detected on computer board" << std::endl;
             if (computerBoard->isGameOver()) {
                 gameOver = true;
+                playerWon = true;
                 return;
             }
             playerTurn = false;
-            handleComputerTurn();
+            waitingForBot = true;
+            glutTimerFunc(1500, [](int) {
+                sceneForTimer->handleComputerTurn();
+            }, 0);
         }
     }
 
     void Scene::handleComputerTurn() {
+        waitingForBot = false;
+
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_int_distribution<> dis(0, playerBoard->getBoardSize() - 1);
@@ -106,9 +140,12 @@ namespace SeaBattle {
 
         if (playerBoard->isGameOver()) {
             gameOver = true;
+            playerWon = false;
         } else {
             playerTurn = true;
         }
+
+        glutPostRedisplay();
     }
 
     float Scene::getPlayerBoardX() const {
@@ -126,10 +163,10 @@ namespace SeaBattle {
     void Scene::on_paint() {
         glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 
-        float lightAmbient[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-        float lightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        float lightSpecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        float lightPosition[] = { 1.0f, 1.0f, 1.0f, 0.0f };
+        float lightAmbient[] = {0.0f, 0.0f, 0.0f, 1.0f};
+        float lightDiffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
+        float lightSpecular[] = {1.0f, 1.0f, 1.0f, 1.0f};
+        float lightPosition[] = {1.0f, 1.0f, 1.0f, 0.0f};
 
         glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
         glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
@@ -141,7 +178,7 @@ namespace SeaBattle {
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        gluPerspective(60.0, glutGet(GLUT_WINDOW_WIDTH) / (float)glutGet(GLUT_WINDOW_HEIGHT), 1.0, 3000.0);
+        gluPerspective(60.0, glutGet(GLUT_WINDOW_WIDTH) / (float) glutGet(GLUT_WINDOW_HEIGHT), 1.0, 3000.0);
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
@@ -197,22 +234,22 @@ namespace SeaBattle {
         mouseY = y;
 
         if (state == GLUT_UP) {
-            button = -1;
+            this->button = -1;
             return;
         }
 
         this->button = button;
 
         if (button == GLUT_LEFT_BUTTON) {
-            GLfloat winX = (float)x;
-            GLfloat winY = (float)(lastViewport[3] - y);
+            GLfloat winX = (float) x;
+            GLfloat winY = (float) (lastViewport[3] - y);
             GLfloat winZ;
             GLdouble posX, posY, posZ;
 
             glReadPixels(x, lastViewport[3] - y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
             gluUnProject(winX, winY, winZ, lastModelview, lastProjection, lastViewport, &posX, &posY, &posZ);
 
-            handleMouseClick((float)posX, (float)posZ);
+            handleMouseClick((float) posX, (float) posZ);
             glutPostRedisplay();
         }
     }
@@ -228,4 +265,4 @@ namespace SeaBattle {
         }
         glutPostRedisplay();
     }
-} // namespace SeaBattle
+}

@@ -19,6 +19,7 @@ namespace SeaBattle {
         ~Board();
 
         void draw(bool isPlayerBoard);
+        void drawShip(const Ship* ship, float boardThickness, float shipHeight, float cellSize);
         bool makeShot(float x, float y);
         bool isGameOver() const;
         void generateShips();

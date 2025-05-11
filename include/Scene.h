@@ -7,6 +7,8 @@
 namespace SeaBattle {
     class Scene {
         static const int BOARD_SPACING = 50;
+        bool waitingForBot = false;
+        bool playerWon;
 
         Board* playerBoard;
         Board* computerBoard;
