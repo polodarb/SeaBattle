@@ -19,7 +19,7 @@ namespace SeaBattle {
 
         ~Board();
 
-        void draw();
+        void draw(bool isPlayerBoard);
 
         bool makeShot(float x, float y);
 
@@ -35,6 +35,8 @@ namespace SeaBattle {
         float getCellSize() const { return cellSize; }
         float getOffsetX() const { return offsetX; }
         float getOffsetY() const { return offsetY; }
+
+        const std::vector<std::vector<Cell*>>& getCells() const { return cells; }
     };
 } // namespace SeaBattle
 

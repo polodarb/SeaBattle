@@ -48,8 +48,8 @@ namespace SeaBattle {
     }
 
     void Scene::drawBoards() {
-        playerBoard->draw();
-        computerBoard->draw();
+        playerBoard->draw(true);
+        computerBoard->draw(false);
     }
 
     void Scene::drawLabels() {

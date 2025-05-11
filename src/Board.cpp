@@ -28,9 +28,22 @@ namespace SeaBattle {
         }
     }
 
-    void Board::draw() {
-        for (const auto &row: cells) {
-            for (auto cell: row) {
+    void Board::draw(bool isPlayerBoard) {
+        for (const auto& row : cells) {
+            for (auto cell : row) {
+                int s = cell->getState();
+
+                if (!isPlayerBoard && s == 1) {
+                    cell->setColor(0.2f, 0.4f, 0.8f); // цвет воды
+                } else {
+                    switch (s) {
+                        case 0: cell->setColor(0.2f, 0.4f, 0.8f); break;       // пусто
+                        case 1: cell->setColor(0.0f, 0.0f, 0.0f); break;       // корабль
+                        case 2: cell->setColor(1.0f, 0.0f, 0.0f); break;       // попадание
+                        case 3: cell->setColor(0.5f, 0.5f, 0.5f); break;       // промах
+                    }
+                }
+
                 cell->draw();
             }
         }
@@ -92,6 +105,16 @@ namespace SeaBattle {
 
     void Board::placeShip(int x, int y, int size, bool horizontal) {
         ships.push_back(new Ship(size, offsetX + x * cellSize, offsetY + y * cellSize, cellSize, horizontal));
+        
+        if (horizontal) {
+            for (int i = 0; i < size; ++i) {
+                cells[y][x + i]->setState(1); // Set cell state to 1 for ship
+            }
+        } else {
+            for (int i = 0; i < size; ++i) {
+                cells[y + i][x]->setState(1); // Set cell state to 1 for ship
+            }
+        }
     }
 
     void Board::generateShips() {
