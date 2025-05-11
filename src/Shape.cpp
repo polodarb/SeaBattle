@@ -1,29 +1,30 @@
+#include <GL/glut.h>
 #include "../include/Shape.h"
 
 namespace SeaBattle {
-
-Shape::Shape(float x, float y, float width, float height)
-    : x(x), y(y), width(width), height(height), r(1.0f), g(1.0f), b(1.0f) {
+    void drawParallelepiped(float length, float height, float depth) {
+        float lx = length / 2.0f;
+        float ly = height / 2.0f;
+        float lz = depth / 2.0f;
+        glBegin(GL_QUADS);
+        glNormal3f(0.0f, 1.0f, 0.0f);
+        glVertex3f(-lx, ly, -lz); glVertex3f(-lx, ly,  lz);
+        glVertex3f( lx, ly,  lz); glVertex3f( lx, ly, -lz);
+        glNormal3f(0.0f, -1.0f, 0.0f);
+        glVertex3f(-lx, -ly, -lz); glVertex3f( lx, -ly, -lz);
+        glVertex3f( lx, -ly,  lz); glVertex3f(-lx, -ly,  lz);
+        glNormal3f(0.0f, 0.0f, 1.0f);
+        glVertex3f(-lx, -ly,  lz); glVertex3f( lx, -ly,  lz);
+        glVertex3f( lx,  ly,  lz); glVertex3f(-lx,  ly,  lz);
+        glNormal3f(0.0f, 0.0f, -1.0f);
+        glVertex3f(-lx, -ly, -lz); glVertex3f(-lx,  ly, -lz);
+        glVertex3f( lx,  ly, -lz); glVertex3f( lx, -ly, -lz);
+        glNormal3f(-1.0f, 0.0f, 0.0f);
+        glVertex3f(-lx, -ly, -lz); glVertex3f(-lx, -ly,  lz);
+        glVertex3f(-lx,  ly,  lz); glVertex3f(-lx,  ly, -lz);
+        glNormal3f(1.0f, 0.0f, 0.0f);
+        glVertex3f( lx, -ly, -lz); glVertex3f( lx,  ly, -lz);
+        glVertex3f( lx,  ly,  lz); glVertex3f( lx, -ly,  lz);
+        glEnd();
+    }
 }
-
-void Shape::setColor(float r, float g, float b) {
-    this->r = r;
-    this->g = g;
-    this->b = b;
-}
-
-void Shape::setPosition(float x, float y) {
-    this->x = x;
-    this->y = y;
-}
-
-void Shape::setSize(float width, float height) {
-    this->width = width;
-    this->height = height;
-}
-
-bool Shape::contains(float px, float py) const {
-    return px >= x && px <= x + width && py >= y && py <= y + height;
-}
-
-} // namespace SeaBattle

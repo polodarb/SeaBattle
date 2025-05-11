@@ -3,11 +3,12 @@
 #include <string>
 #include <random>
 #include <cstdio>
+#include <iostream>
 
 namespace SeaBattle {
     void Scene::renderText(int x, int y, const char *text) {
         glRasterPos2i(x, y);
-        for (const char *c = text; *c != '\0'; c++) {
+        for (const char *c = text; *c != '\0'; ++c) {
             glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *c);
         }
     }
@@ -31,20 +32,7 @@ namespace SeaBattle {
     }
 
     void Scene::draw() {
-        drawBackground();
         drawBoards();
-        drawLabels();
-        drawGameStatus();
-    }
-
-    void Scene::drawBackground() {
-        glColor3f(0.8f, 0.8f, 0.8f);
-        glBegin(GL_QUADS);
-        glVertex2f(0, 0);
-        glVertex2f(glutGet(GLUT_WINDOW_WIDTH), 0);
-        glVertex2f(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
-        glVertex2f(0, glutGet(GLUT_WINDOW_HEIGHT));
-        glEnd();
     }
 
     void Scene::drawBoards() {
@@ -56,11 +44,9 @@ namespace SeaBattle {
         glColor3f(0.0f, 0.0f, 0.0f);
         char buffer[256];
         sprintf(buffer, "Your board");
-        renderText(static_cast<int>(playerBoard->getOffsetX()), static_cast<int>(playerBoard->getOffsetY() - 30),
-                   buffer);
+        renderText((int) playerBoard->getOffsetX(), (int) (playerBoard->getOffsetY() - 30), buffer);
         sprintf(buffer, "Bot's board");
-        renderText(static_cast<int>(computerBoard->getOffsetX()), static_cast<int>(computerBoard->getOffsetY() - 30),
-                   buffer);
+        renderText((int) computerBoard->getOffsetX(), (int) (computerBoard->getOffsetY() - 30), buffer);
     }
 
     void Scene::drawGameStatus() {
@@ -76,15 +62,22 @@ namespace SeaBattle {
         }
     }
 
+    void Scene::drawTextOverlay() {
+        drawLabels();
+        drawGameStatus();
+    }
+
     void Scene::handleMouseClick(float x, float y) {
+        std::cout << "Mouse click at world XZ: " << x << ", " << y << std::endl;
+
         if (gameOver || !playerTurn) return;
 
         if (computerBoard->makeShot(x, y)) {
+            std::cout << "Hit detected on computer board" << std::endl;
             if (computerBoard->isGameOver()) {
                 gameOver = true;
                 return;
             }
-
             playerTurn = false;
             handleComputerTurn();
         }
@@ -99,10 +92,8 @@ namespace SeaBattle {
         while (!shotMade) {
             int compX = dis(gen);
             int compY = dis(gen);
-
             float shotX = playerBoard->getOffsetX() + compX * playerBoard->getCellSize();
             float shotY = playerBoard->getOffsetY() + compY * playerBoard->getCellSize();
-
             shotMade = playerBoard->makeShot(shotX, shotY);
         }
 
@@ -111,5 +102,17 @@ namespace SeaBattle {
         } else {
             playerTurn = true;
         }
+    }
+
+    float Scene::getPlayerBoardX() const {
+        return playerBoard->getOffsetX();
+    }
+
+    float Scene::getComputerBoardX() const {
+        return computerBoard->getOffsetX();
+    }
+
+    float Scene::getPlayerBoardY() const {
+        return playerBoard->getOffsetY();
     }
 } // namespace SeaBattle

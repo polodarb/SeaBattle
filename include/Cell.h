@@ -1,22 +1,20 @@
-#ifndef SEABATTLE_CELL_H
-#define SEABATTLE_CELL_H
-
-#include "Shape.h"
+#ifndef CELL_H
+#define CELL_H
 
 namespace SeaBattle {
+    class Cell {
+        float x, y, size;
+        int state;
 
-class Cell : public Shape {
-private:
-    int state; // 0: empty, 1: ship, 2: hit, 3: miss
+    public:
+        Cell(float x, float y, float size);
+        float getX() const;
+        float getY() const;
+        float getSize() const;
+        int getState() const;
+        void setState(int s);
+        bool contains(float px, float py) const;
+    };
+}
 
-public:
-    Cell(float x, float y, float size);
-    
-    void draw() override;
-    void setState(int newState);
-    int getState() const { return state; }
-};
-
-} // namespace SeaBattle
-
-#endif // SEABATTLE_CELL_H 
+#endif
