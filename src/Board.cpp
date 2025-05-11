@@ -8,7 +8,6 @@
 
 
 namespace SeaBattle {
-
     // Вспомогательная функция рисования параллелепипеда (ориентирован вдоль осей, центр в начале координат)
     static void drawParallelepiped(float length, float height, float depth) {
         float lx = length / 2.0f;
@@ -18,45 +17,45 @@ namespace SeaBattle {
         // Верхняя грань (y = +ly)
         glNormal3f(0.0f, 1.0f, 0.0f);
         glVertex3f(-lx, ly, -lz);
-        glVertex3f(-lx, ly,  lz);
-        glVertex3f( lx, ly,  lz);
-        glVertex3f( lx, ly, -lz);
+        glVertex3f(-lx, ly, lz);
+        glVertex3f(lx, ly, lz);
+        glVertex3f(lx, ly, -lz);
         // Нижняя грань (y = -ly)
         glNormal3f(0.0f, -1.0f, 0.0f);
         glVertex3f(-lx, -ly, -lz);
-        glVertex3f( lx, -ly, -lz);
-        glVertex3f( lx, -ly,  lz);
-        glVertex3f(-lx, -ly,  lz);
+        glVertex3f(lx, -ly, -lz);
+        glVertex3f(lx, -ly, lz);
+        glVertex3f(-lx, -ly, lz);
         // Передняя грань (z = +lz)
         glNormal3f(0.0f, 0.0f, 1.0f);
-        glVertex3f(-lx, -ly,  lz);
-        glVertex3f( lx, -ly,  lz);
-        glVertex3f( lx,  ly,  lz);
-        glVertex3f(-lx,  ly,  lz);
+        glVertex3f(-lx, -ly, lz);
+        glVertex3f(lx, -ly, lz);
+        glVertex3f(lx, ly, lz);
+        glVertex3f(-lx, ly, lz);
         // Задняя грань (z = -lz)
         glNormal3f(0.0f, 0.0f, -1.0f);
         glVertex3f(-lx, -ly, -lz);
-        glVertex3f(-lx,  ly, -lz);
-        glVertex3f( lx,  ly, -lz);
-        glVertex3f( lx, -ly, -lz);
+        glVertex3f(-lx, ly, -lz);
+        glVertex3f(lx, ly, -lz);
+        glVertex3f(lx, -ly, -lz);
         // Левая грань (x = -lx)
         glNormal3f(-1.0f, 0.0f, 0.0f);
         glVertex3f(-lx, -ly, -lz);
-        glVertex3f(-lx, -ly,  lz);
-        glVertex3f(-lx,  ly,  lz);
-        glVertex3f(-lx,  ly, -lz);
+        glVertex3f(-lx, -ly, lz);
+        glVertex3f(-lx, ly, lz);
+        glVertex3f(-lx, ly, -lz);
         // Правая грань (x = +lx)
         glNormal3f(1.0f, 0.0f, 0.0f);
-        glVertex3f( lx, -ly, -lz);
-        glVertex3f( lx,  ly, -lz);
-        glVertex3f( lx,  ly,  lz);
-        glVertex3f( lx, -ly,  lz);
+        glVertex3f(lx, -ly, -lz);
+        glVertex3f(lx, ly, -lz);
+        glVertex3f(lx, ly, lz);
+        glVertex3f(lx, -ly, lz);
         glEnd();
     }
 
     Board::Board(float offsetX, float offsetY, float cellSize)
         : cellSize(cellSize), offsetX(offsetX), offsetY(offsetY) {
-        cells.resize(BOARD_SIZE, std::vector<Cell*>(BOARD_SIZE));
+        cells.resize(BOARD_SIZE, std::vector<Cell *>(BOARD_SIZE));
         for (int y = 0; y < BOARD_SIZE; ++y) {
             for (int x = 0; x < BOARD_SIZE; ++x) {
                 cells[y][x] = new Cell(offsetX + x * cellSize, offsetY + y * cellSize, cellSize);
@@ -65,12 +64,12 @@ namespace SeaBattle {
     }
 
     Board::~Board() {
-        for (auto& row : cells) {
-            for (auto cell : row) {
+        for (auto &row: cells) {
+            for (auto cell: row) {
                 delete cell;
             }
         }
-        for (auto ship : ships) {
+        for (auto ship: ships) {
             delete ship;
         }
     }
@@ -78,12 +77,11 @@ namespace SeaBattle {
     void Board::draw(bool isPlayerBoard) {
         float boardLength = BOARD_SIZE * cellSize;
         float boardWidth = BOARD_SIZE * cellSize;
-        float boardThickness = 0.2f * cellSize;
+        float boardThickness = 1 * cellSize;
         float shipHeight = 0.5f * cellSize;
-        float markerSize = 0.5f * cellSize;
+        float markerSize = 1 * cellSize;
         float markerHeight = 0.5f * cellSize;
 
-        // Рисуем платформу (игровую доску)
         float platformCenterX = offsetX + boardLength / 2.0f;
         float platformCenterY = boardThickness / 2.0f;
         float platformCenterZ = offsetY + boardWidth / 2.0f;
@@ -93,35 +91,39 @@ namespace SeaBattle {
         drawParallelepiped(boardLength, boardThickness, boardWidth);
         glPopMatrix();
 
-        // Рисуем сетку линий на платформе
         glDisable(GL_LIGHTING);
-        glColor3f(1.0f, 1.0f, 1.0f);
+        glColor3f(0.75f, 0.75f, 1.0f);
         float topZ = offsetY;
         float bottomZ = offsetY + boardWidth;
         float leftX = offsetX;
         float rightX = offsetX + boardLength;
-        float lineY = boardThickness + 0.01f;
-        glBegin(GL_LINES);
+        float lineY = boardThickness + 0.2f;
+        float lineThickness = 1.25f;
+        glBegin(GL_QUADS);
+        // Вертикальные линии
         for (int i = 0; i <= BOARD_SIZE; ++i) {
             float x = offsetX + i * cellSize;
-            glVertex3f(x, lineY, topZ);
-            glVertex3f(x, lineY, bottomZ);
+            glVertex3f(x - lineThickness, lineY, topZ);
+            glVertex3f(x + lineThickness, lineY, topZ);
+            glVertex3f(x + lineThickness, lineY, bottomZ);
+            glVertex3f(x - lineThickness, lineY, bottomZ);
         }
+        // Горизонтальные линии
         for (int j = 0; j <= BOARD_SIZE; ++j) {
             float z = offsetY + j * cellSize;
-            glVertex3f(leftX, lineY, z);
-            glVertex3f(rightX, lineY, z);
+            glVertex3f(leftX, lineY, z - lineThickness);
+            glVertex3f(rightX, lineY, z - lineThickness);
+            glVertex3f(rightX, lineY, z + lineThickness);
+            glVertex3f(leftX, lineY, z + lineThickness);
         }
         glEnd();
         glEnable(GL_LIGHTING);
 
-        // Рисуем корабли (прямоугольные блоки) для доски игрока
         if (isPlayerBoard) {
-            for (Ship* ship : ships) {
+            for (Ship *ship: ships) {
                 int shipSize = ship->getCells().size();
                 bool horizontal = false;
-                // Проверяем ориентацию корабля по его ячейкам
-                const std::vector<Cell*>& shipCells = ship->getCells();
+                const std::vector<Cell *> &shipCells = ship->getCells();
                 if (shipSize > 1) {
                     float x0 = shipCells[0]->getX();
                     float x1 = shipCells[1]->getX();
@@ -129,13 +131,12 @@ namespace SeaBattle {
                 }
                 float shipLength = horizontal ? shipSize * cellSize : cellSize;
                 float shipDepth = horizontal ? cellSize : shipSize * cellSize;
-                // Центр корабля
                 float shipCenterX = horizontal
-                                    ? shipCells[0]->getX() + shipLength / 2.0f
-                                    : shipCells[0]->getX() + cellSize / 2.0f;
+                                        ? shipCells[0]->getX() + shipLength / 2.0f
+                                        : shipCells[0]->getX() + cellSize / 2.0f;
                 float shipCenterZ = horizontal
-                                    ? shipCells[0]->getY() + cellSize / 2.0f
-                                    : shipCells[0]->getY() + shipDepth / 2.0f;
+                                        ? shipCells[0]->getY() + cellSize / 2.0f
+                                        : shipCells[0]->getY() + shipDepth / 2.0f;
                 float shipCenterY = boardThickness + shipHeight / 2.0f;
                 glPushMatrix();
                 glTranslatef(shipCenterX, shipCenterY, shipCenterZ);
@@ -145,26 +146,27 @@ namespace SeaBattle {
             }
         }
 
-        // Рисуем маркеры попаданий и промахов
         for (int y = 0; y < BOARD_SIZE; ++y) {
             for (int x = 0; x < BOARD_SIZE; ++x) {
                 int state = cells[y][x]->getState();
                 if (state == 2 || state == 3) {
                     float cellCenterX = offsetX + x * cellSize + cellSize / 2.0f;
                     float cellCenterZ = offsetY + y * cellSize + cellSize / 2.0f;
+                    float markerH = (state == 2) ? markerHeight : 0.1f;
                     float baseY = boardThickness;
                     if (state == 2 && isPlayerBoard) {
                         baseY = boardThickness + shipHeight;
                     }
-                    float markerCenterY = baseY + markerHeight / 2.0f;
+                    float markerCenterY = baseY + markerH / 2.0f;
+
                     glPushMatrix();
                     glTranslatef(cellCenterX, markerCenterY, cellCenterZ);
                     if (state == 2) {
                         glColor3f(1.0f, 0.0f, 0.0f);
-                    } else if (state == 3) {
-                        glColor3f(0.5f, 0.5f, 0.5f);
+                    } else {
+                        glColor3f(0.6f, 0.6f, 0.6f);
                     }
-                    drawParallelepiped(markerSize, markerHeight, markerSize);
+                    drawParallelepiped(markerSize, markerH, markerSize);
                     glPopMatrix();
                 }
             }
@@ -172,12 +174,12 @@ namespace SeaBattle {
     }
 
     bool Board::makeShot(float x, float y) {
-        int boardX = (int)((x - offsetX) / cellSize);
-        int boardY = (int)((y - offsetY) / cellSize);
+        int boardX = (int) ((x - offsetX) / cellSize);
+        int boardY = (int) ((y - offsetY) / cellSize);
         if (boardX < 0 || boardX >= BOARD_SIZE || boardY < 0 || boardY >= BOARD_SIZE) {
             return false;
         }
-        Cell* cell = cells[boardY][boardX];
+        Cell *cell = cells[boardY][boardX];
         if (cell->getState() != 0 && cell->getState() != 1) {
             return false;
         }
@@ -191,8 +193,8 @@ namespace SeaBattle {
     }
 
     bool Board::isGameOver() const {
-        for (const auto& row : cells) {
-            for (auto cell : row) {
+        for (const auto &row: cells) {
+            for (auto cell: row) {
                 if (cell->getState() == 1) {
                     return false;
                 }
@@ -236,7 +238,7 @@ namespace SeaBattle {
     void Board::generateShips() {
         srand(static_cast<unsigned>(time(nullptr)));
         int shipsToPlace[] = {5, 4, 3, 3, 2};
-        for (int size : shipsToPlace) {
+        for (int size: shipsToPlace) {
             bool placed = false;
             while (!placed) {
                 int x = rand() % BOARD_SIZE;
