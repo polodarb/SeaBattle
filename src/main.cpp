@@ -14,6 +14,9 @@ namespace SeaBattle {
     static float distZ = -1000.0f;
     static int lastMouseX = 0, lastMouseY = 0;
     static int currentButton = -1;
+    GLdouble lastModelview[16];
+    GLdouble lastProjection[16];
+    GLint lastViewport[4];
 
     Scene *scene;
 
@@ -37,31 +40,34 @@ namespace SeaBattle {
     void display() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Установка проекции и камеры
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        gluPerspective(60.0, (double) glutGet(GLUT_WINDOW_WIDTH) / glutGet(GLUT_WINDOW_HEIGHT), 1.0, 3000.0);
+        gluPerspective(60.0, (double)glutGet(GLUT_WINDOW_WIDTH) / glutGet(GLUT_WINDOW_HEIGHT), 1.0, 3000.0);
+
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        // Источник света (направленный из камеры)
+
         float lightPos[] = {0.0f, 0.0f, -1.0f, 0.0f};
         glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
-        // Трансформации камеры
+
         glTranslatef(0.0f, 0.0f, distZ);
         glRotatef(angleX, 0.0f, 1.0f, 0.0f);
         glRotatef(angleY, 1.0f, 0.0f, 0.0f);
+
         float centerX = (scene->getPlayerBoardX() + scene->getComputerBoardX()) / 2.0f + 5 * CELL_SIZE;
         float centerZ = scene->getPlayerBoardY() + 5 * CELL_SIZE;
         glTranslatef(-centerX, -10.0f, -centerZ);
 
-        // Включаем освещение и рисуем 3D-сцену
         glEnable(GL_LIGHTING);
         glEnable(GL_LIGHT0);
-        scene->draw(); // рисование игровых объектов (доски и корабли)
+        scene->draw();
         glDisable(GL_LIGHT0);
         glDisable(GL_LIGHTING);
 
-        // Переключаемся в 2D для отображения текста
+        glGetDoublev(GL_MODELVIEW_MATRIX, lastModelview);
+        glGetDoublev(GL_PROJECTION_MATRIX, lastProjection);
+        glGetIntegerv(GL_VIEWPORT, lastViewport);
+
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         gluOrtho2D(0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT), 0);
@@ -76,22 +82,16 @@ namespace SeaBattle {
 
     void mouse(int button, int state, int x, int y) {
         if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-            GLint viewport[4];
-            GLdouble modelview[16], projection[16];
-            GLfloat winX, winY, winZ;
+            GLfloat winX = static_cast<float>(x);
+            GLfloat winY = static_cast<float>(lastViewport[3] - y);
+            GLfloat winZ;
             GLdouble posX, posY, posZ;
 
-            glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
-            glGetDoublev(GL_PROJECTION_MATRIX, projection);
-            glGetIntegerv(GL_VIEWPORT, viewport);
+            glReadPixels(x, lastViewport[3] - y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
 
-            winX = static_cast<float>(x);
-            winY = static_cast<float>(viewport[3] - y);
-            glReadPixels(x, viewport[3] - y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+            gluUnProject(winX, winY, winZ, lastModelview, lastProjection, lastViewport, &posX, &posY, &posZ);
 
-            gluUnProject(winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
-
-            scene->handleMouseClick((float)posX, (float)posZ); // ⚠️ Z — это наша глубина, Z → Y
+            scene->handleMouseClick((float)posX, (float)posZ);
             glutPostRedisplay();
         }
 
