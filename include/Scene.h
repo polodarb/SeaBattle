@@ -1,5 +1,5 @@
-#ifndef SCENE_H
-#define SCENE_H
+#ifndef SEABATTLE_SCENE_H
+#define SEABATTLE_SCENE_H
 
 #include "Board.h"
 #include <GL/glut.h>
@@ -24,18 +24,18 @@ namespace SeaBattle {
 
         GLdouble lastModelview[16];
         GLdouble lastProjection[16];
-        GLint lastViewport[4];
+        GLint    lastViewport[4];
 
     public:
         Scene(float startX, float startY, float cellSize);
         ~Scene();
 
         void init();
-
         void draw();
         void drawTextOverlay();
         void handleMouseClick(float x, float y);
 
+        // Event handlers for GLUT callbacks
         void on_paint();
         void on_motion(int x, int y);
         void on_mouse(int button, int state, int x, int y);
@@ -54,4 +54,4 @@ namespace SeaBattle {
     };
 }
 
-#endif
+#endif // SEABATTLE_SCENE_H

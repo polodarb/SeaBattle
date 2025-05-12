@@ -19,19 +19,18 @@ namespace SeaBattle {
         ~Board();
 
         void draw(bool isPlayerBoard);
-        void drawShip(const Ship* ship, float boardThickness, float shipHeight, float cellSize);
         bool makeShot(float x, float y);
         bool isGameOver() const;
         void generateShips();
         bool canPlaceShip(int x, int y, int size, bool horizontal) const;
         void placeShip(int x, int y, int size, bool horizontal);
 
-        int getBoardSize() const { return BOARD_SIZE; }
-        float getCellSize() const { return cellSize; }
-        float getOffsetX() const { return offsetX; }
-        float getOffsetY() const { return offsetY; }
+        int getBoardSize() const    { return BOARD_SIZE; }
+        float getCellSize() const   { return cellSize; }
+        float getOffsetX() const    { return offsetX; }
+        float getOffsetY() const    { return offsetY; }
         const std::vector<std::vector<Cell*>>& getCells() const { return cells; }
     };
-} // namespace SeaBattle
+}
 
-#endif
+#endif // SEABATTLE_BOARD_H
