@@ -115,19 +115,24 @@ namespace SeaBattle {
     }
 
     bool Board::makeShot(float x, float y) {
-        // обчислюємо в яку клітинку попали
         int bx = (int) ((x - offsetX) / cellSize);
         int by = (int) ((y - offsetY) / cellSize);
         if (bx < 0 || bx >= BOARD_SIZE || by < 0 || by >= BOARD_SIZE) {
-            return false; // клік мимо поля
-        }
-        Cell *cell = cells[by][bx];
-        // стріляємо лише по нетронутих клітинках
-        if (cell->getState() != 0 && cell->getState() != 1) {
+            lastShotWasHit = false;
             return false;
         }
-        // перевіряємо попадання
-        cell->setState(cell->getState() == 1 ? 2 : 3);
+        Cell *cell = cells[by][bx];
+        if (cell->getState() != 0 && cell->getState() != 1) {
+            lastShotWasHit = false;
+            return false;
+        }
+        if (cell->getState() == 1) {
+            cell->setState(2);
+            lastShotWasHit = true;
+        } else {
+            cell->setState(3);
+            lastShotWasHit = false;
+        }
         return true;
     }
 

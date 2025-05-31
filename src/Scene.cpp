@@ -89,6 +89,8 @@ namespace SeaBattle {
         glColor3f(0.0f, 0.0f, 0.0f);
         int windowWidth = glutGet(GLUT_WINDOW_WIDTH);
         char buffer[256];
+        sprintf(buffer, "Your hits: %d", playerHits);
+        renderText(30, 60, buffer);
         sprintf(buffer, "Your board");
         renderText(windowWidth / 2 - 200, (int) playerBoard->getOffsetY(), buffer);
         sprintf(buffer, "Bot's board");
@@ -122,13 +124,14 @@ namespace SeaBattle {
 
         // гравець стріляє по комп'ютеру
         if (computerBoard->makeShot(x, y)) {
+            if (computerBoard->wasLastShotHit()) {
+                playerHits++;
+            }
             if (computerBoard->isGameOver()) {
                 gameOver = true;
                 playerWon = true;
                 return;
             }
-
-            // передаємо хід боту після затримки
             playerTurn = false;
             waitingForBot = true;
             glutTimerFunc(1500, [](int) { sceneForTimer->handleComputerTurn(); }, 0);

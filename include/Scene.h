@@ -9,6 +9,7 @@ namespace SeaBattle {
         static const int BOARD_SPACING = 50; // відстань між дошками
         bool waitingForBot = false; // чи зараз хід бота
         bool playerWon; // виграв гравець чи ні
+        int playerHits = 0; // кількість попадань твоих
 
         Board *playerBoard; // дошка гравця
         Board *computerBoard; // дошка комп'ютера

@@ -13,6 +13,7 @@ namespace SeaBattle {
         std::vector<Ship *> ships; // список кораблів
         float cellSize; // розмір однієї клітинки
         float offsetX, offsetY; //  зсув дошки в просторі
+        bool lastShotWasHit = false;
 
     public:
         // створює нову дошку з заданим зміщенням і розміром клітинки
@@ -26,6 +27,8 @@ namespace SeaBattle {
 
         // постріл
         bool makeShot(float x, float y);
+
+        bool wasLastShotHit() const { return lastShotWasHit; }
 
         bool isGameOver() const;
 
