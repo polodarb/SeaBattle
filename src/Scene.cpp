@@ -6,6 +6,8 @@
 #include <iomanip>
 #include <sstream>
 
+const int MAX_RESULTS = 3; // максимальна кількість останніх результатів
+
 // глобальний вказівник на сцену (щоб передати в колбек таймера)
 SeaBattle::Scene *sceneForTimer = nullptr;
 
@@ -28,6 +30,12 @@ namespace SeaBattle {
         playerBoard = new Board(startX, startY, cellSize);
         computerBoard = new Board(startX + playerBoard->getBoardSize() * cellSize + BOARD_SPACING,
                                   startY, cellSize);
+        // Загружаем последние результаты из файла
+        auto vec = StorageManager::loadResults(resultsFile, MAX_RESULTS);
+        for (const auto& s : vec)
+            lastResults.push_back(s);
+
+        gameStartTime = std::time(nullptr);
     }
 
     // деструктор - очищає пам'ять
@@ -123,6 +131,18 @@ namespace SeaBattle {
         glColor3f(0.2f, 0.2f, 0.2f);
         int windowWidth = glutGet(GLUT_WINDOW_WIDTH);
         renderText(windowWidth - 220, 30, "F2 - Restart game");
+        renderText(windowWidth - 220, 55, "Last 3 games:");
+        if (lastResults.empty()) {
+            renderText(windowWidth - 220, 75, "No results");
+        } else {
+            int i = 1;
+            for (const auto& s : lastResults) {
+                char buf[128];
+                snprintf(buf, sizeof(buf), "%d. %s", i, s.c_str());
+                renderText(windowWidth - 220, 55 + i * 20, buf);
+                ++i;
+            }
+        }
     }
 
     // обробка кліку мишкою по дошці комп'ютера
@@ -137,6 +157,7 @@ namespace SeaBattle {
             if (computerBoard->isGameOver()) {
                 gameOver = true;
                 playerWon = true;
+                addResult(true);
                 return;
             }
             playerTurn = false;
@@ -165,11 +186,27 @@ namespace SeaBattle {
         if (playerBoard->isGameOver()) {
             gameOver = true;
             playerWon = false;
+
+            addResult(false);
         } else {
             playerTurn = true;
         }
 
         glutPostRedisplay();
+    }
+
+    void Scene::addResult(bool playerWin) {
+        time_t now = std::time(nullptr);
+        int seconds = int(now - gameStartTime);
+        std::ostringstream ss;
+        ss << std::setw(2) << std::setfill('0') << seconds / 60 << ":"
+           << std::setw(2) << std::setfill('0') << (seconds % 60)
+           << " | " << (playerWin ? "Player won" : "Bot won");
+        lastResults.push_front(ss.str());
+        if (lastResults.size() > MAX_RESULTS) lastResults.pop_back();
+
+        std::vector<std::string> vec(lastResults.begin(), lastResults.end());
+        StorageManager::saveResults(resultsFile, vec);
     }
 
     // повертаємо координати дощок (для центрування)
@@ -304,6 +341,7 @@ namespace SeaBattle {
         playerBoard = new Board(100.0f, 150.0f, cellSize);
         computerBoard = new Board(100.0f + playerBoard->getBoardSize() * cellSize + BOARD_SPACING, 150.0f, cellSize);
         playerHits = 0;
+        gameStartTime = std::time(nullptr);
         init();
     }
 }

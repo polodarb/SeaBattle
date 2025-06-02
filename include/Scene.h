@@ -3,6 +3,8 @@
 
 #include "Board.h"
 #include <GL/glut.h>
+#include <deque>
+#include "StorageManager.h"
 
 namespace SeaBattle {
     class Scene {
@@ -28,6 +30,12 @@ namespace SeaBattle {
         GLdouble lastModelview[16];
         GLdouble lastProjection[16];
         GLint lastViewport[4];
+
+        std::deque<std::string> lastResults;
+        time_t gameStartTime;
+        const std::string resultsFile = "results.txt";
+
+        void addResult(bool playerWin);
 
     public:
         Scene(float startX, float startY, float cellSize); // створення сцени з 2 дошками
