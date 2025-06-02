@@ -2,6 +2,9 @@
 #include <GL/glut.h>
 #include <cstdio>
 #include <random>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 
 // глобальний вказівник на сцену (щоб передати в колбек таймера)
 SeaBattle::Scene *sceneForTimer = nullptr;
@@ -81,7 +84,7 @@ namespace SeaBattle {
     // малювання дощок
     void Scene::drawBoards() {
         playerBoard->draw(true); // дошка гравця з кораблями
-        computerBoard->draw(false); // дошка комп’ютера без кораблів
+        computerBoard->draw(false); // дошка комп'ютера без кораблів
     }
 
     // підписи над дошками ("Your board", "Bot's board")
@@ -116,9 +119,13 @@ namespace SeaBattle {
     void Scene::drawTextOverlay() {
         drawLabels(); // підписи над дошками
         drawGameStatus(); // інфа про стан гри
+        // Підказка про рестарт
+        glColor3f(0.2f, 0.2f, 0.2f);
+        int windowWidth = glutGet(GLUT_WINDOW_WIDTH);
+        renderText(windowWidth - 220, 30, "F2 - Restart game");
     }
 
-    // обробка кліку мишкою по дошці комп’ютера
+    // обробка кліку мишкою по дошці комп'ютера
     void Scene::handleMouseClick(float x, float y) {
         if (gameOver || !playerTurn || waitingForBot) return;
 
@@ -138,7 +145,7 @@ namespace SeaBattle {
         }
     }
 
-    // хід комп’ютера (рандомний постріл по дошці гравця)
+    // хід комп'ютера (рандомний постріл по дошці гравця)
     void Scene::handleComputerTurn() {
         waitingForBot = false;
 
@@ -284,7 +291,19 @@ namespace SeaBattle {
             case GLUT_KEY_DOWN:
                 if (distZ > -1500.0f) distZ -= 50.0f;
                 break;
+            case GLUT_KEY_F2:
+                restartGame();
+                break;
         }
         glutPostRedisplay();
+    }
+
+    void Scene::restartGame() {
+        delete playerBoard;
+        delete computerBoard;
+        playerBoard = new Board(100.0f, 150.0f, cellSize);
+        computerBoard = new Board(100.0f + playerBoard->getBoardSize() * cellSize + BOARD_SPACING, 150.0f, cellSize);
+        playerHits = 0;
+        init();
     }
 }

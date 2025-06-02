@@ -9,7 +9,14 @@ include_directories(${CMAKE_SOURCE_DIR}/freeglut/include)
 
 file(GLOB_RECURSE SOURCES src/*.cpp)
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME}
+    src/main.cpp
+    src/Scene.cpp
+    src/Board.cpp
+    src/Utils.cpp
+    src/Ship.cpp
+    src/Cell.cpp
+)
 
 target_link_libraries(${PROJECT_NAME}
         ${CMAKE_SOURCE_DIR}/freeglut/lib/libfreeglut.a

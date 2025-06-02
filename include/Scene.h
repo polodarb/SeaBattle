@@ -23,7 +23,7 @@ namespace SeaBattle {
         float angleX, angleY; // кути повороту сцени
         float distZ; // віддалення камери
 
-        // матриці та в’юпорт, щоб визначити, куди саме клацнув користувач у 3D-сцені
+        // матриці та в'юпорт, щоб визначити, куди саме клацнув користувач у 3D-сцені
         // в методичці такого нема, бо там об'єкти жорстко задані, а тут клітинки вільно в просторі
         GLdouble lastModelview[16];
         GLdouble lastProjection[16];
@@ -54,6 +54,8 @@ namespace SeaBattle {
         float getPlayerBoardY() const;
 
         // повертає координату Y дошки (у всіх дошок вона однакова, тому для бота не треба окремо)
+
+        void restartGame();
 
     private:
         void renderText(int x, int y, const char *text); // виводить текст на екран
